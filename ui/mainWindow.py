@@ -3,6 +3,9 @@ from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, \
 from PyQt5.QtGui import QPainter, QPixmap, QColor
 from PyQt5.QtCore import QSize
 
+# local imports
+from network.client import ClientThread
+
 class MainWindow(QMainWindow):
     """
     Top level UI class, contains all other widgets.
@@ -25,6 +28,12 @@ class MainWindow(QMainWindow):
 
         # call initUI method
         self.initUI()
+
+
+        # set up connection from client to server
+        self.client = ClientThread()
+        self.client.start()
+
 
     def initUI(self):
         """
