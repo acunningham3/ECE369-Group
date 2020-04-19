@@ -6,6 +6,42 @@ import sys
 
 from PyQt5.QtCore import QThread
 
+
+class Client(socket.socket):
+    def __init__(self):
+        super().__init__(socket.AF_INET, socket.SOCK_STREAM)
+        self.connect(('localhost', 8001))
+        print("connected to localhost at port 8001")
+        
+
+    def send_drawing(self, data):
+        """
+        x0, y0 are first point of line to draw
+        x1, y1 are second point
+        """
+        # for i in data:
+        #     try:
+        #         self.sendall(bytes(i))
+        #     except ValueError:
+        #         pass
+        # self.connect(('localhost', 8001))
+
+        print(data)
+        packet = '[' + str(data) + ']'
+        encoded_data = packet.encode()
+        print(encoded_data)
+        self.sendall(encoded_data)
+        
+        # need to receive reply from server
+
+    def send_text(self, text):
+        print(text)
+        packet = '[' + text + ']'
+        encoded_text = packet.encode()
+        print(encoded_text)
+        self.sendall(encoded_text)
+
+
 class ClientThread(QThread):
 
     def __init__(self):
@@ -42,3 +78,5 @@ class ClientThread(QThread):
         # Close the client socket
         clientSocket.close()
         sys.exit(0)
+
+    

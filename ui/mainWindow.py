@@ -1,10 +1,10 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, \
-                            QTextEdit, QLabel, QPushButton
+                            QTextEdit, QLabel, QPushButton, qApp
 from PyQt5.QtGui import QPainter, QPixmap, QColor
-from PyQt5.QtCore import QSize
+from PyQt5.QtCore import QSize, pyqtSignal
 
 # local imports
-from network.client import ClientThread
+from network.client import ClientThread, Client
 
 class MainWindow(QMainWindow):
     """
@@ -19,7 +19,7 @@ class MainWindow(QMainWindow):
         self.title = "UniNotes"
         self.left = 100
         self.top = 100
-        self.width = 1080
+        self.width = 1280
         self.height = 720
         self.minWidth = 800
         self.minHeight = 600
@@ -29,10 +29,15 @@ class MainWindow(QMainWindow):
         # call initUI method
         self.initUI()
 
+        self.client = Client()
 
         # set up connection from client to server
-        self.client = ClientThread()
-        self.client.start()
+        # self.client = ClientThread()
+        # self.client.start()
+
+        # connect signals
+        self._main.drawingWidget.canvas.canvasChangedSignal.connect(self.canvasChanged)
+        self._main.textWidget.textChangedSignal.connect(self.textChanged)
 
 
     def initUI(self):
@@ -44,6 +49,15 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(self.minWidth, self.minHeight)
 
         self.show()
+
+    def closeEvent(self, event):
+        qApp.quit()
+
+    def canvasChanged(self, data):
+        self.client.send_drawing(data)
+
+    def textChanged(self, text):
+        self.client.send_text(text)
 
 class MainWidget(QWidget):
     """
@@ -82,8 +96,17 @@ class TextWidget(QTextEdit):
     """
     Widget for editing document text
     """
+
+    textChangedSignal = pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
+        # self.plainText
+        self.textChanged.connect(self.emitTextChangedSignal)
+
+    def emitTextChangedSignal(self):
+        self.textChangedSignal.emit(self.toPlainText())
+
 
 class DrawingWidget(QWidget):
     """
@@ -113,9 +136,11 @@ class Canvas(QLabel):
 
     source: https://www.learnpyqt.com/courses/custom-widgets/bitmap-graphics/
     """
+    canvasChangedSignal = pyqtSignal(list)
+
     def __init__(self):
         super().__init__()
-        pixmap = QPixmap(400, 600) # create pixmap with initial size of 400 x 650
+        pixmap = QPixmap(600, 600) # create pixmap with initial size of 400 x 650
         # self.setScaledContents(True)    # allow label to scale with window re-sizing
         self.setPixmap(pixmap)
 
@@ -139,6 +164,10 @@ class Canvas(QLabel):
         p.setColor(self.penColor)
         painter.setPen(p)
         painter.drawLine(self.last_x, self.last_y, e.x(), e.y())
+
+        # start x, start y, end x, end y, color in hex#
+        self.canvasChangedSignal.emit([self.last_x, self.last_y, e.x(), e.y(), self.penColor.name()])
+
         painter.end()
         self.update()
 
