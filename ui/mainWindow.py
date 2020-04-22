@@ -93,11 +93,12 @@ class MainWidget(QWidget):
         self.mainLayout.addLayout(self.rightLayout, 85)
 
     def serverUpdate(self, msg):
-        new_msg = str(msg)
+        new_msg = msg.decode()
+        print(type(new_msg))
         print(f"msg = {new_msg}")
-        if new_msg[:4] == 'b"[d':
+        if new_msg[:2] == '[d':
             self.drawingWidget.canvas.canvasUpdate(new_msg)
-        elif new_msg[:4] == 'b"[t':
+        elif new_msg[:2] == "[t":
             self.textWidget.textUpdate(new_msg)
 
 class TextWidget(QTextEdit):
@@ -116,7 +117,13 @@ class TextWidget(QTextEdit):
         self.textChangedSignal.emit(self.toPlainText())
 
     def textUpdate(self, msg):
-        pass
+        self.blockSignals(True) # block text changed signal from firing while adding other client text
+        print(f"received message ={msg}")
+        plainText = msg[3:-1]
+        print(plainText)
+        self.setPlainText(plainText)
+        self.update()
+        self.blockSignals(False)    # allow signal to fire again
 
 class DrawingWidget(QWidget):
     """
@@ -152,12 +159,13 @@ class Canvas(QLabel):
         super().__init__()
         # self.setStyleSheet("background-color: white;")
         pixmap = QPixmap(600, 600) # create pixmap with initial size of 400 x 650
+        pixmap.fill(QColor('white'))
         # self.setScaledContents(True)    # allow label to scale with window re-sizing
         self.setPixmap(pixmap)
 
         self.last_x = None  # stores last known mouse x position
         self.last_y = None  # stores last known mouse y position
-        self.penColor = QColor('#FFFFFF')   # initial pen color is white
+        self.penColor = QColor('#000000')   # initial pen color is black
 
     def setPenColor(self, c):
         print(c)
