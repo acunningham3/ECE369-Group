@@ -29,16 +29,16 @@ class MainWindow(QMainWindow):
         # call initUI method
         self.initUI()
 
-        self.client = Client()
+        # self.client = Client()
 
         # set up connection from client to server
-        # self.client = ClientThread()
-        # self.client.start()
+        self.client = ClientThread()
+        self.client.start()
 
         # connect signals
         self._main.drawingWidget.canvas.canvasChangedSignal.connect(self.canvasChanged)
         self._main.textWidget.textChangedSignal.connect(self.textChanged)
-
+        self.client.msgReceivedSignal.connect(self._main.serverUpdate)
 
     def initUI(self):
         """
@@ -92,6 +92,14 @@ class MainWidget(QWidget):
         self.mainLayout.addLayout(self.menuLayout, 15)
         self.mainLayout.addLayout(self.rightLayout, 85)
 
+    def serverUpdate(self, msg):
+        new_msg = str(msg)
+        print(f"msg = {new_msg}")
+        if new_msg[:4] == 'b"[d':
+            self.drawingWidget.canvas.canvasUpdate(new_msg)
+        elif new_msg[:4] == 'b"[t':
+            self.textWidget.textUpdate(new_msg)
+
 class TextWidget(QTextEdit):
     """
     Widget for editing document text
@@ -107,6 +115,8 @@ class TextWidget(QTextEdit):
     def emitTextChangedSignal(self):
         self.textChangedSignal.emit(self.toPlainText())
 
+    def textUpdate(self, msg):
+        pass
 
 class DrawingWidget(QWidget):
     """
@@ -140,15 +150,17 @@ class Canvas(QLabel):
 
     def __init__(self):
         super().__init__()
+        # self.setStyleSheet("background-color: white;")
         pixmap = QPixmap(600, 600) # create pixmap with initial size of 400 x 650
         # self.setScaledContents(True)    # allow label to scale with window re-sizing
         self.setPixmap(pixmap)
 
         self.last_x = None  # stores last known mouse x position
         self.last_y = None  # stores last known mouse y position
-        self.penColor = QColor('#000000')   # initial pen color is black
+        self.penColor = QColor('#FFFFFF')   # initial pen color is white
 
     def setPenColor(self, c):
+        print(c)
         self.penColor = QColor(c)
 
     def mouseMoveEvent(self, e):
@@ -178,6 +190,31 @@ class Canvas(QLabel):
     def mouseReleaseEvent(self, e):
         self.last_x = None
         self.last_y = None
+
+    def canvasUpdate(self, msg):
+        new_msg = msg.strip('b"[d,')   # remove leading characters
+        new_msg = new_msg.strip("]")   # remove trailing character
+        new_msg = new_msg.split(',')   # create list
+        print(f"split message = {new_msg}")
+        
+        # oldPenColor = self.penColor
+
+        painter = QPainter(self.pixmap())
+        p = painter.pen()
+        p.setWidth(4)
+        print(new_msg[4])
+        print(type(new_msg[4]))
+        # self.penColor = QColor(new_msg[4])
+        # self.penColor.setNamedColor(new_msg[4])
+        self.setPenColor(new_msg[4])
+        print(self.penColor.name())
+        p.setColor(self.penColor)  # 5th element contains color
+        painter.setPen(p)
+        painter.drawLine(int(new_msg[0]), int(new_msg[1]), int(new_msg[2]), int(new_msg[3]))
+        painter.end()
+        self.update()
+
+        # self.penColor = oldPenColor
 
 class ColorButton(QPushButton):
 
