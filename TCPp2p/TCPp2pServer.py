@@ -3,7 +3,7 @@ import select
 
 HEADER_LENGTH = 10
 IP = "127.0.0.1"
-PORT = 1234
+PORT = 8001
 
 # Creating a socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

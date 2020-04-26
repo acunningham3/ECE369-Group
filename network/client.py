@@ -4,7 +4,7 @@
 import socket
 import sys
 
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, pyqtSignal
 
 
 class Client(socket.socket):
@@ -41,7 +41,46 @@ class Client(socket.socket):
         print(encoded_text)
         self.sendall(encoded_text)
 
+class ClientThread(QThread):
+    msgReceivedSignal = pyqtSignal(bytes)
 
+    def __init__(self):
+        super().__init__()
+
+    def run(self):
+        self.client = Client()
+        while True:
+            msg = self.client.recv(1024)
+            self.msgReceivedSignal.emit(msg)
+
+    def send_drawing(self, data):
+        """
+        x0, y0 are first point of line to draw
+        x1, y1 are second point
+        """
+        # for i in data:
+        #     try:
+        #         self.sendall(bytes(i))
+        #     except ValueError:
+        #         pass
+        # self.connect(('localhost', 8001))
+
+        # print(data)
+        packet = '[d,' + str(data) + ']'    # d for drawing
+        encoded_data = packet.encode()
+        print("sending:", encoded_data)
+        self.client.sendall(encoded_data)
+        
+        # need to receive reply from server
+
+    def send_text(self, text):
+        print(text)
+        packet = '[t,' + text + ']' # t for text
+        encoded_text = packet.encode()
+        print("sending:", encoded_text)
+        self.client.sendall(encoded_text)
+
+"""
 class ClientThread(QThread):
 
     def __init__(self):
@@ -80,3 +119,4 @@ class ClientThread(QThread):
         sys.exit(0)
 
     
+"""
