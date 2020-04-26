@@ -65,10 +65,10 @@ class ClientThread(QThread):
         #         pass
         # self.connect(('localhost', 8001))
 
-        print(data)
+        # print(data)
         packet = '[d,' + str(data) + ']'    # d for drawing
         encoded_data = packet.encode()
-        print(encoded_data)
+        print("sending:", encoded_data)
         self.client.sendall(encoded_data)
         
         # need to receive reply from server
@@ -77,7 +77,7 @@ class ClientThread(QThread):
         print(text)
         packet = '[t,' + text + ']' # t for text
         encoded_text = packet.encode()
-        print(encoded_text)
+        print("sending:", encoded_text)
         self.client.sendall(encoded_text)
 
 """

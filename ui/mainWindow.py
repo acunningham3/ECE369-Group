@@ -19,8 +19,8 @@ class MainWindow(QMainWindow):
         self.title = "UniNotes"
         self.left = 100
         self.top = 100
-        self.width = 1280
-        self.height = 720
+        self.width = 1024
+        self.height = 640
         self.minWidth = 800
         self.minHeight = 600
         self._main = MainWidget()   # main widget contains the important UI elements and functions
@@ -74,9 +74,9 @@ class MainWidget(QWidget):
     def createLayouts(self):
         self.mainLayout = QHBoxLayout() # main layout for the entire widget
 
-        self.menuLayout = QVBoxLayout()
+        # self.menuLayout = QVBoxLayout()
         self.rightLayout = QVBoxLayout()
-        self.topLayout = QHBoxLayout()
+        # self.topLayout = QHBoxLayout()
         self.documentLayout = QHBoxLayout()
 
     def addLayouts(self):
@@ -86,19 +86,19 @@ class MainWidget(QWidget):
         self.documentLayout.addWidget(self.textWidget, 50)
         self.documentLayout.addWidget(self.drawingWidget, 50)
 
-        self.rightLayout.addLayout(self.topLayout, 10)
-        self.rightLayout.addLayout(self.documentLayout, 90)
+        # self.rightLayout.addLayout(self.topLayout, 10)
+        self.rightLayout.addLayout(self.documentLayout)
         
-        self.mainLayout.addLayout(self.menuLayout, 15)
-        self.mainLayout.addLayout(self.rightLayout, 85)
+        # self.mainLayout.addLayout(self.menuLayout, 15)
+        self.mainLayout.addLayout(self.rightLayout)
 
     def serverUpdate(self, msg):
-        new_msg = msg.decode()
-        print(type(new_msg))
+        new_msg = msg.decode()  # decode byte message into string
+        # print(type(new_msg))
         print(f"msg = {new_msg}")
         if new_msg[:2] == '[d':
             self.drawingWidget.canvas.canvasUpdate(new_msg)
-        elif new_msg[:2] == "[t":
+        elif new_msg[:2] == '[t':
             self.textWidget.textUpdate(new_msg)
 
 class TextWidget(QTextEdit):
@@ -118,7 +118,7 @@ class TextWidget(QTextEdit):
 
     def textUpdate(self, msg):
         self.blockSignals(True) # block text changed signal from firing while adding other client text
-        print(f"received message ={msg}")
+        # print(f"received message ={msg}")
         plainText = msg[3:-1]
         print(plainText)
         self.setPlainText(plainText)
@@ -158,8 +158,8 @@ class Canvas(QLabel):
     def __init__(self):
         super().__init__()
         # self.setStyleSheet("background-color: white;")
-        pixmap = QPixmap(600, 600) # create pixmap with initial size of 400 x 650
-        pixmap.fill(QColor('white'))
+        pixmap = QPixmap(600, 600)  # create pixmap with initial size of 400 x 650
+        pixmap.fill(QColor('white'))    # 
         # self.setScaledContents(True)    # allow label to scale with window re-sizing
         self.setPixmap(pixmap)
 
@@ -168,7 +168,7 @@ class Canvas(QLabel):
         self.penColor = QColor('#000000')   # initial pen color is black
 
     def setPenColor(self, c):
-        print(c)
+        # print(c)
         self.penColor = QColor(c)
 
     def mouseMoveEvent(self, e):
@@ -210,12 +210,12 @@ class Canvas(QLabel):
         painter = QPainter(self.pixmap())
         p = painter.pen()
         p.setWidth(4)
-        print(new_msg[4])
-        print(type(new_msg[4]))
+        # print(new_msg[4])
+        # print(type(new_msg[4]))
         # self.penColor = QColor(new_msg[4])
         # self.penColor.setNamedColor(new_msg[4])
         self.setPenColor(new_msg[4])
-        print(self.penColor.name())
+        # print(self.penColor.name())
         p.setColor(self.penColor)  # 5th element contains color
         painter.setPen(p)
         painter.drawLine(int(new_msg[0]), int(new_msg[1]), int(new_msg[2]), int(new_msg[3]))

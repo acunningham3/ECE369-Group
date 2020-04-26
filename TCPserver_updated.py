@@ -39,6 +39,7 @@ def client_connect(accept_tuple):
                         client.sendall(message)
             except (ConnectionResetError, OSError):
                 print("client disconnected")
+                client_list.remove(connection_socket)
                 connection_socket.close()
                 running = False
                 break
