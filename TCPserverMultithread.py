@@ -4,7 +4,8 @@
 # Import socket, system, & thread modules
 import socket
 import sys
-from thread import *
+import threading
+import _thread
 
 global running
 
@@ -57,7 +58,7 @@ except IOError: # Changed in v2.6: socket.error is now a child class of IOError
 # Listen to the connection requests for communication
 while running:
 	print('Threaded TCP Server is listening on port ', sys.argv[1], '...')
-	thread.start_new_thread( connectCommunicate, (serverSocket.accept()) )
+	_thread.start_new_thread( connectCommunicate, (serverSocket.accept()) )
 	# tid = thread.start_new_thread(f, (a) [,kwa]) exits the thread silently when function f returns
 
 print("Server shuts down!")
